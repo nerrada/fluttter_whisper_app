@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import '../services/whisper_service.dart';
@@ -10,7 +9,6 @@ import '../models/language_model.dart';
 import '../utils/constants.dart';
 import '../widgets/language_selector.dart';
 import '../widgets/transcription_card.dart';
-import '../widgets/audio_visualizer.dart';
 import '../utils/logger.dart';
 
 class SpeechScreen extends StatefulWidget {
@@ -84,29 +82,24 @@ class _SpeechScreenState extends State<SpeechScreen>
   Future<void> _checkServerStatus() async {
     AppLogger.info('Checking server status', tag: 'SpeechScreen');
     
-    // ADDED: Try to get ngrok URL from environment or use default
-    final ngrokUrl = const String.fromEnvironment('NGROK_URL', defaultValue: '');
-    if (ngrokUrl.isNotEmpty) {
-      AppLogger.info('Using ngrok URL: $ngrokUrl', tag: 'SpeechScreen');
-      _whisperService.updateBaseUrl(ngrokUrl);
-    }
-    
     final isAvailable = await _whisperService.checkServerHealth();
     
     AppLogger.info('Server status check completed - Available: $isAvailable', tag: 'SpeechScreen');
     
-    setState(() {
-      _serverAvailable = isAvailable;
-    });
-    
-    if (!isAvailable) {
-      AppLogger.warning('Server not available', tag: 'SpeechScreen');
-      _showSnackBar(
-        'Server not available. Start Python backend first.',
-        Colors.orange,
-      );
-    } else {
-      AppLogger.info('Server is available and ready', tag: 'SpeechScreen');
+    if (mounted) {
+      setState(() {
+        _serverAvailable = isAvailable;
+      });
+      
+      if (!isAvailable) {
+        AppLogger.warning('Server not available', tag: 'SpeechScreen');
+        _showSnackBar(
+          'Server not available. Start Python backend first.',
+          Colors.orange,
+        );
+      } else {
+        AppLogger.info('Server is available and ready', tag: 'SpeechScreen');
+      }
     }
   }
 
@@ -131,7 +124,7 @@ class _SpeechScreenState extends State<SpeechScreen>
       AppLogger.info('Calling audio service to start recording', tag: 'SpeechScreen');
       final recordingPath = await _audioService.startRecording();
       
-      if (recordingPath != null) {
+      if (recordingPath != null && mounted) {
         AppLogger.info('Recording started successfully at: $recordingPath', tag: 'SpeechScreen');
         setState(() {
           _isRecording = true;
@@ -169,9 +162,11 @@ class _SpeechScreenState extends State<SpeechScreen>
       
       AppLogger.info('Recording stopped, path: $recordingPath', tag: 'SpeechScreen');
       
-      setState(() {
-        _isRecording = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isRecording = false;
+        });
+      }
 
       _pulseController.stop();
       _waveController.stop();
@@ -195,19 +190,23 @@ class _SpeechScreenState extends State<SpeechScreen>
         error: e,
         stackTrace: StackTrace.current,
       );
-      setState(() {
-        _isRecording = false;
-        _isTranscribing = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isRecording = false;
+          _isTranscribing = false;
+        });
+      }
       _showSnackBar('Stop recording error: $e', Colors.red);
     }
   }
 
   Future<void> _transcribeAudio(String audioPath) async {
     AppLogger.info('Starting transcription for: $audioPath', tag: 'SpeechScreen');
-    setState(() {
-      _isTranscribing = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isTranscribing = true;
+      });
+    }
 
     try {
       final file = File(audioPath);
@@ -243,7 +242,7 @@ class _SpeechScreenState extends State<SpeechScreen>
         }
       );
 
-      if (response != null && response.success && response.result != null) {
+      if (response != null && response.success && response.result != null && mounted) {
         AppLogger.info('Transcription successful', 
           tag: 'SpeechScreen',
           data: {
@@ -280,9 +279,11 @@ class _SpeechScreenState extends State<SpeechScreen>
       );
       _showSnackBar('Transcription error: $e', Colors.red);
     } finally {
-      setState(() {
-        _isTranscribing = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isTranscribing = false;
+        });
+      }
       
       // Clean up audio file
       try {
@@ -295,9 +296,9 @@ class _SpeechScreenState extends State<SpeechScreen>
   }
 
   void _startRecordingTimer() {
-    if (_isRecording) {
+    if (_isRecording && mounted) {
       Future.delayed(const Duration(seconds: 1), () {
-        if (_isRecording) {
+        if (_isRecording && mounted) {
           setState(() {
             _recordingDuration = _recordingDuration + const Duration(seconds: 1);
           });
@@ -316,22 +317,75 @@ class _SpeechScreenState extends State<SpeechScreen>
 
   void _showSnackBar(String message, Color color) {
     AppLogger.info('Showing snackbar: $message', tag: 'SpeechScreen');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: color,
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   void _clearHistory() {
     AppLogger.info('Clearing transcription history', tag: 'SpeechScreen');
-    setState(() {
-      _transcriptionHistory.clear();
-      _lastResult = null;
-    });
+    if (mounted) {
+      setState(() {
+        _transcriptionHistory.clear();
+        _lastResult = null;
+      });
+    }
+  }
+
+  void _showSettingsDialog() {
+    final TextEditingController urlController = TextEditingController(
+      text: WhisperService.baseUrl,
+    );
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Server Settings'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: urlController,
+              decoration: const InputDecoration(
+                labelText: 'Server URL',
+                hintText: 'http://localhost:8000',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Enter your server address (e.g., ngrok URL)',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newUrl = urlController.text.trim();
+              if (newUrl.isNotEmpty) {
+                AppLogger.info('Updating server URL to: $newUrl', tag: 'SpeechScreen');
+                _whisperService.updateBaseUrl(newUrl);
+                Navigator.pop(context);
+                _checkServerStatus();
+              }
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -377,9 +431,8 @@ class _SpeechScreenState extends State<SpeechScreen>
             icon: const Icon(Icons.clear_all),
             tooltip: 'Clear history',
           ),
-          // ADDED: Settings button for ngrok URL
           IconButton(
-            onPressed: () => _showSettingsDialog(),
+            onPressed: _showSettingsDialog,
             icon: const Icon(Icons.settings),
             tooltip: 'Settings',
           ),
@@ -400,9 +453,11 @@ class _SpeechScreenState extends State<SpeechScreen>
                         selectedLanguage: _selectedLanguage,
                         onLanguageChanged: (language) {
                           AppLogger.info('Language changed to: $language', tag: 'SpeechScreen');
-                          setState(() {
-                            _selectedLanguage = language;
-                          });
+                          if (mounted) {
+                            setState(() {
+                              _selectedLanguage = language;
+                            });
+                          }
                         },
                       ),
                     ),
@@ -438,7 +493,7 @@ class _SpeechScreenState extends State<SpeechScreen>
                           );
                         }).toList(),
                         onChanged: (value) {
-                          if (value != null) {
+                          if (value != null && mounted) {
                             AppLogger.info('Model changed to: $value', tag: 'SpeechScreen');
                             setState(() {
                               _selectedModel = value;
@@ -630,14 +685,15 @@ class _SpeechScreenState extends State<SpeechScreen>
                                 isLatest: index == 0,
                                 onCopy: (text) {
                                   AppLogger.info('Text copied to clipboard', tag: 'SpeechScreen');
-                                  // Implement clipboard copy
                                   _showSnackBar('Copied to clipboard', Colors.green);
                                 },
                                 onDelete: () {
                                   AppLogger.info('Deleting transcription at index: $index', tag: 'SpeechScreen');
-                                  setState(() {
-                                    _transcriptionHistory.removeAt(index);
-                                  });
+                                  if (mounted) {
+                                    setState(() {
+                                      _transcriptionHistory.removeAt(index);
+                                    });
+                                  }
                                 },
                               );
                             },
@@ -646,56 +702,6 @@ class _SpeechScreenState extends State<SpeechScreen>
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  // ADDED: Settings dialog for ngrok URL
-  void _showSettingsDialog() {
-    final TextEditingController urlController = TextEditingController(
-      text: WhisperService.baseUrl,
-    );
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Server Settings'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: urlController,
-              decoration: const InputDecoration(
-                labelText: 'Server URL',
-                hintText: 'https://your-ngrok-url.ngrok.io',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Enter your ngrok URL or server address',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final newUrl = urlController.text.trim();
-              if (newUrl.isNotEmpty) {
-                AppLogger.info('Updating server URL to: $newUrl', tag: 'SpeechScreen');
-                _whisperService.updateBaseUrl(newUrl);
-                Navigator.pop(context);
-                _checkServerStatus();
-              }
-            },
-            child: const Text('Update'),
           ),
         ],
       ),

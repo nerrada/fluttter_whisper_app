@@ -6,10 +6,9 @@ class AppLogger {
   
   static void debug(String message, {String? tag, Object? error, StackTrace? stackTrace, Map<String, dynamic>? data}) {
     final logTag = tag ?? _tag;
-    final logMessage = '[$logTag] DEBUG: $message';
     
     if (kDebugMode) {
-      print(logMessage);
+      print('[$logTag] DEBUG: $message');
       if (data != null) {
         print('[$logTag] DATA: $data');
       }
@@ -24,7 +23,7 @@ class AppLogger {
     developer.log(
       message,
       name: logTag,
-      level: 500, // DEBUG level
+      level: 500,
       error: error,
       stackTrace: stackTrace,
     );
@@ -32,10 +31,9 @@ class AppLogger {
   
   static void info(String message, {String? tag, Map<String, dynamic>? data}) {
     final logTag = tag ?? _tag;
-    final logMessage = '[$logTag] INFO: $message';
     
     if (kDebugMode) {
-      print(logMessage);
+      print('[$logTag] INFO: $message');
       if (data != null) {
         print('[$logTag] DATA: $data');
       }
@@ -44,16 +42,15 @@ class AppLogger {
     developer.log(
       message,
       name: logTag,
-      level: 800, // INFO level
+      level: 800,
     );
   }
   
   static void warning(String message, {String? tag, Object? error, Map<String, dynamic>? data}) {
     final logTag = tag ?? _tag;
-    final logMessage = '[$logTag] WARNING: $message';
     
     if (kDebugMode) {
-      print(logMessage);
+      print('[$logTag] WARNING: $message');
       if (data != null) {
         print('[$logTag] DATA: $data');
       }
@@ -65,17 +62,16 @@ class AppLogger {
     developer.log(
       message,
       name: logTag,
-      level: 900, // WARNING level
+      level: 900,
       error: error,
     );
   }
   
   static void error(String message, {String? tag, Object? error, StackTrace? stackTrace, Map<String, dynamic>? data}) {
     final logTag = tag ?? _tag;
-    final logMessage = '[$logTag] ERROR: $message';
     
     if (kDebugMode) {
-      print(logMessage);
+      print('[$logTag] ERROR: $message');
       if (data != null) {
         print('[$logTag] DATA: $data');
       }
@@ -90,7 +86,7 @@ class AppLogger {
     developer.log(
       message,
       name: logTag,
-      level: 1000, // ERROR level
+      level: 1000,
       error: error,
       stackTrace: stackTrace,
     );
@@ -98,10 +94,9 @@ class AppLogger {
   
   static void network(String message, {String? tag, Map<String, dynamic>? data}) {
     final logTag = '${tag ?? _tag}_NETWORK';
-    final logMessage = '[$logTag] $message';
     
     if (kDebugMode) {
-      print(logMessage);
+      print('[$logTag] $message');
       if (data != null) {
         print('[$logTag] DATA: $data');
       }
@@ -116,10 +111,9 @@ class AppLogger {
   
   static void audio(String message, {String? tag, Map<String, dynamic>? data}) {
     final logTag = '${tag ?? _tag}_AUDIO';
-    final logMessage = '[$logTag] $message';
     
     if (kDebugMode) {
-      print(logMessage);
+      print('[$logTag] $message');
       if (data != null) {
         print('[$logTag] DATA: $data');
       }

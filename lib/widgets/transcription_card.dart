@@ -27,10 +27,13 @@ class _TranscriptionCardState extends State<TranscriptionCard> {
   bool _showSegments = false;
 
   Language? get _detectedLanguage {
-    return AppConstants.supportedLanguages.firstWhere(
-      (lang) => lang.code == widget.result.language,
-      orElse: () => AppConstants.supportedLanguages.first,
-    );
+    try {
+      return AppConstants.supportedLanguages.firstWhere(
+        (lang) => lang.code == widget.result.language,
+      );
+    } catch (e) {
+      return AppConstants.supportedLanguages.first;
+    }
   }
 
   Color get _confidenceColor {

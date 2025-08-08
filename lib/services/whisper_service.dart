@@ -1,14 +1,12 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:http/http.dart' as http;
 import '../models/transcription_model.dart';
 import '../utils/constants.dart';
 import '../utils/logger.dart';
 
 class WhisperService {
-  // CHANGED: Make baseUrl configurable for ngrok
-  static String baseUrl = 'http://localhost:8000'; // Default for local
+  static String baseUrl = 'http://localhost:8000';
   late final Dio _dio;
 
   WhisperService() {
@@ -26,7 +24,7 @@ class WhisperService {
     
     // Add interceptors for logging
     _dio.interceptors.add(LogInterceptor(
-      requestBody: false, // Don't log file uploads
+      requestBody: false,
       responseBody: true,
       logPrint: (obj) => AppLogger.network('$obj', tag: 'DIO'),
     ));
@@ -65,7 +63,6 @@ class WhisperService {
     ));
   }
   
-  // ADDED: Method to update base URL for ngrok
   void updateBaseUrl(String newBaseUrl) {
     AppLogger.info('Updating baseUrl from $baseUrl to $newBaseUrl', tag: 'WhisperService');
     baseUrl = newBaseUrl;
@@ -166,7 +163,6 @@ class WhisperService {
           throw Exception('Empty response from server');
         }
         
-        // Log response structure for debugging
         AppLogger.debug('Response data type: ${response.data.runtimeType}', tag: 'WhisperService');
         
         return ApiResponse.fromJson(response.data);
@@ -190,7 +186,7 @@ class WhisperService {
       
       String errorMessage = 'Unknown error occurred';
       
-      if (e.type == DioExceptionType.connectionTimeout) {  // CHANGED: connectTimeout -> connectionTimeout
+      if (e.type == DioExceptionType.connectionTimeout) {
         errorMessage = 'Connection timeout - check if server is running';
       } else if (e.type == DioExceptionType.receiveTimeout) {
         errorMessage = 'Response timeout - audio file might be too large';

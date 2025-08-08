@@ -4,7 +4,6 @@ import 'screens/speech_screen.dart';
 import 'utils/logger.dart';
 
 void main() {
-  // Initialize logging
   WidgetsFlutterBinding.ensureInitialized();
   
   // Set up error handling
@@ -39,7 +38,7 @@ class MyApp extends StatelessWidget {
           centerTitle: true,
           elevation: 0,
         ),
-        cardTheme: const CardThemeData(  // CHANGED: CardTheme -> CardThemeData
+        cardTheme: const CardThemeData(
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(12)),
