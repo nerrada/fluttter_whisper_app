@@ -4,12 +4,15 @@ import 'package:flutter/foundation.dart';
 class AppLogger {
   static const String _tag = 'WhisperApp';
   
-  static void debug(String message, {String? tag, Object? error, StackTrace? stackTrace}) {
+  static void debug(String message, {String? tag, Object? error, StackTrace? stackTrace, Map<String, dynamic>? data}) {
     final logTag = tag ?? _tag;
     final logMessage = '[$logTag] DEBUG: $message';
     
     if (kDebugMode) {
       print(logMessage);
+      if (data != null) {
+        print('[$logTag] DATA: $data');
+      }
       if (error != null) {
         print('[$logTag] ERROR: $error');
       }
@@ -27,12 +30,15 @@ class AppLogger {
     );
   }
   
-  static void info(String message, {String? tag}) {
+  static void info(String message, {String? tag, Map<String, dynamic>? data}) {
     final logTag = tag ?? _tag;
     final logMessage = '[$logTag] INFO: $message';
     
     if (kDebugMode) {
       print(logMessage);
+      if (data != null) {
+        print('[$logTag] DATA: $data');
+      }
     }
     
     developer.log(
@@ -42,12 +48,15 @@ class AppLogger {
     );
   }
   
-  static void warning(String message, {String? tag, Object? error}) {
+  static void warning(String message, {String? tag, Object? error, Map<String, dynamic>? data}) {
     final logTag = tag ?? _tag;
     final logMessage = '[$logTag] WARNING: $message';
     
     if (kDebugMode) {
       print(logMessage);
+      if (data != null) {
+        print('[$logTag] DATA: $data');
+      }
       if (error != null) {
         print('[$logTag] WARNING ERROR: $error');
       }
@@ -61,12 +70,15 @@ class AppLogger {
     );
   }
   
-  static void error(String message, {String? tag, Object? error, StackTrace? stackTrace}) {
+  static void error(String message, {String? tag, Object? error, StackTrace? stackTrace, Map<String, dynamic>? data}) {
     final logTag = tag ?? _tag;
     final logMessage = '[$logTag] ERROR: $message';
     
     if (kDebugMode) {
       print(logMessage);
+      if (data != null) {
+        print('[$logTag] DATA: $data');
+      }
       if (error != null) {
         print('[$logTag] ERROR DETAILS: $error');
       }
